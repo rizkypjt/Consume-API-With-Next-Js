@@ -1,90 +1,77 @@
-import React from 'react'
-import Head from 'next/head'
-import Nav from '../components/nav'
-import Link from "next/link";
+import React, { Component } from 'react';
+import fetch from 'isomorphic-unfetch';
+import { URLSearchParams } from 'url';
+import axios from 'axios'
+
+// import table from '../Api/api';
+// import axios from 'axios'
+// import Form from "../forms/form";
+
+class Index extends Component {
+
+  // static async getInitialProps() {
+  //   const res = await fetch(`http://192.168.1.10:8000/api/login`)
+  //   const data = await res.json()
+
+  //   return {show:data}
+  // }
+
+  render() {
+    return (
+      <section className="content">
+        <div className="box">
+          <div className="box-header">
+            <h3 className="box-title">Users show</h3>
+          </div>
+          <div className="box-body no-padding">
+            <table className="table table-condensed">
+              <tbody>
+                <tr>
+                  <th style={{ width: 60 }}>#</th>
+                  <th>Task</th>
+                  <th>Summary</th>
+                  <th style={{ width: 40 }}>Label</th>
+                </tr>
+                {this.props.users.map(user => (
+                  <tr key={user.id}>
+                    <td>
+                      {user.id}
+                    </td>
+                    <td>{user.role}</td>
+                    <td  href="/p/id" as={`/p/${user.id}`}>{user.name}</td>
+                    <td>
+                      {/* <td> {user.summary.replace(/<[/]?[pb]>/g, '')}}</td> */}
+                      <td>{user.name}</td>
+                    </td>
+                    <td>
+                      <td>{user.email}</td>
+
+                      {/* <img src={user.image.medium} /> */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody></table>
+          </div>
+        </div>
+      </section>
 
 
-const Home = () => (
-  <div>
-    <Head>
-      <title>Home</title>
-      <link rel='icon' href='/favicon.ico' />
-    </Head>
+    )
+  }
+}
 
-    <Nav />
+Index.getInitialProps = async function () {
 
-    <div className='hero'>
-      <h1 className='title'>Welcome to Next.js!</h1>
-      <p className='description'>
-        To get started, edit <code>pages/index.js</code> and save to reload.
-      </p>
+  // const res = await fetch(`http://192.168.1.11:8000/api/users`);
+  // const data = await res.json();
+  // console.log(data);
+  const res = await axios.get(`http://192.168.1.11:8000/api/users`)
+  const data = res.data
 
-      <div className='row'>
-        <a href='/about' className='card'>
-          <h3>Documentation &rarr;</h3>
-          <p>Learn more about Next.js in the documentation.</p>
-        </a>
-        <a href='https://nextjs.org/learn' className='card'>
-          <h3>Next.js Learn &rarr;</h3>
-          <p>Learn about Next.js by following an interactive tutorial!</p>
-        </a>
-        <a
-          href='https://github.com/zeit/next.js/tree/master/examples'
-          className='card'
-        >
-          <h3>Examples &rarr;</h3>
-          <p>Find other example boilerplates on the Next.js GitHub.</p>
-        </a>
-      </div>
-    </div>
+  return {
+    // shows: [],
+    users: data.users
+  }
+}
 
-    <style jsx>{`
-      .hero {
-        width: 100%;
-        color: #333;
-      }
-      .title {
-        margin: 0;
-        width: 100%;
-        padding-top: 80px;
-        line-height: 1.15;
-        font-size: 48px;
-      }
-      .title,
-      .description {
-        text-align: center;
-      }
-      .row {
-        max-width: 880px;
-        margin: 80px auto 40px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-      }
-      .card {
-        padding: 18px 18px 24px;
-        width: 220px;
-        text-align: left;
-        text-decoration: none;
-        color: #434343;
-        border: 1px solid #9b9b9b;
-      }
-      .card:hover {
-        border-color: #067df7;
-      }
-      .card h3 {
-        margin: 0;
-        color: #067df7;
-        font-size: 18px;
-      }
-      .card p {
-        margin: 0;
-        padding: 12px 0 0;
-        font-size: 13px;
-        color: #333;
-      }
-    `}</style>
-  </div>
-)
-
-export default Home
+export default Index
