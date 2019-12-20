@@ -1,133 +1,252 @@
 import React, { Component } from 'react';
-import fetch from 'isomorphic-unfetch';
-import { URLSearchParams } from 'url';
-import axios from 'axios'
+import axios from 'axios';
+import {
+  Input,
+  FormGroup,
+  Label,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Table,
+  Button
+}
+  from 'reactstrap';
 
-
-class Index extends Component {
-
+class App extends Component {
   state = {
     users: [],
-    newUse
+    newUserData: {
+      role: '',
+      name: '',
+      email: ''
+    },
+    editUserData: {
+      id: '',
+      role: '',
+      name: '',
+      email: ''
+    },
+    newUserModal: false,
+    editUserModal: false
+  }
+  
+  componentWillMount() {
+    // axios.get(`http://192.168.1.21:8000/api/users`).then((response) => {
+    //   this.setState({
+    //     users: response.data
+    //   })
+    // });
+    this._refreshUsers();
   }
 
-  deleteUSer(id) {
-    axios.delete(`http://192.168.1.21:8000/api/users/` + id)
-    return alert('Berhasil');
-
+  toggleNewUserModal() {
+    this.setState({
+      newUserModal: !this.state.newUserModal
+    });
   }
 
-  addUSers() {
-    axios.post(`http://192.168.1.21:8000/api/users`)
+  toggleEditUserModal() {
+    this.setState({
+      editUserModal: !this.state.editUserModal
+    });
+  }
+
+  addUser(e) {
+    e.preventDefault();
+    axios.post('http://192.168.1.4:8000/api/users/', this.state.newUserData).then((response) => {
+      let { users } = this.state;
+      console.log('testing', users)
+      users.push(response.data);
+
+      this.setState({
+        users, newUserModal: false, newUserData: {
+          role: '',
+          name: '',
+          email: ''
+        }
+      });
+      this._refreshUsers();
+    });
+  }
+  updateUser(e) {
+    e.preventDefault();
+    let { role, name, email } = this.state.editUserData;
+
+    axios.put('http://192.168.1.4:8000/api/users/' + this.state.editUserData.id, {
+      role, name, email
+    }).then((response) => {
+      this._refreshUsers();
+
+      this.setState({
+        editUserModal: false, editUserData: { id: '', role: '', name: '', email: '' }
+      })
+    });
+  }
+  editUser(id, role, name, email) {
+    this.setState({
+      editUserData: { id, role, name, email }, editUserModal: !this.state.editUserModal
+    });
+  }
+  deleteUser(id) {
+    axios.delete('http://192.168.1.4:8000/api/users/' + id).then((response) => {
+      this._refreshUsers();
+    });
+  }
+
+  deleteUser1 = async (id) => {
+    await axios.delete('http://192.168.1.4:8000/api/users/' + id);
+    this._refreshUsers();
+  }
+
+  _refreshUsers() {
+    axios.get('http://192.168.1.4:8000/api/users/').then((response) => {
+      console.log('res',response.data)
+      this.setState({
+        users: response.data.users
+      })
+    });
   }
 
   render() {
+    console.log(this.state.users)
     return (
+      <div className="App container">
 
-      <section className="content">
-        <div className="box">
-          <div className="box-header">
-            <h3 className="box-title">Users show</h3>
-          </div>
+        <h1>Users App</h1>
 
-          <button type="button" className="btn btn-primary" onClick={this.addUSers.bind(this)} data-toggle="modal" data-target="#exampleModalCenter">
-            Add Users
-          </button>&nbsp;
+        <Button
+          className="my-3"
+          color="primary"
+          onClick={this.toggleNewUserModal.bind(this)}>
+          Add User
+        </Button>
 
-          <div className="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="exampleModalLongTitle">Modal title</h5>
-                  <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <input type="text" class="form-control" placeholder="Role"
-                    value={this.state.NewUser.role} onChange={(e) => {
-                      let { newFormData } = this.state;
-                      
-                      newFormData.title = e.target.value;
+        <Modal isOpen={this.state.newUserModal} toggle={this.toggleNewUserModal.bind(this)}>
+          <ModalHeader toggle={this.toggleNewUserModal.bind(this)}>Add a new User</ModalHeader>
+          <ModalBody>
+            <FormGroup>
+              <Label for="role">role</Label>
+              <Input id="role" value={this.state.newUserData.role} onChange={(e) => {
+                let { newUserData } = this.state;
 
-                      this.setState({newFormData});
-                    }}/>
-                  
-                    &nbsp;
-                  <input type="text" class="form-control" placeholder="Name" />&nbsp;
-                  <input type="text" class="form-control" placeholder="Email" />
-                </div>
-                
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-primary" data-dismiss="modal">Edit</button>
-                  <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                </div>
-              </div>
-            </div>
-          </div>
+                newUserData.role = e.target.value;
 
-          <div className="box-body no-padding">
-            <table className="table table-condensed">
-              <tbody>
-                <tr>
-                  <th style={{ width: 60 }}>ID</th>
-                  <th>Role</th>
-                  <th>Name</th>
-                  <th style={{ width: 40 }}>Email</th>
+                this.setState({ newUserData });
+              }} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="name">name</Label>
+              <Input id="name" value={this.state.newUserData.name} onChange={(e) => {
+                let { newUserData } = this.state;
+
+                newUserData.name = e.target.value;
+
+                this.setState({ newUserData });
+              }} />
+            </FormGroup>
+
+            <FormGroup>
+              <Label for="email">email</Label>
+              <Input id="email" value={this.state.newUserData.email} onChange={(e) => {
+                let { newUserData } = this.state;
+
+                newUserData.email = e.target.value;
+
+                this.setState({ newUserData });
+              }} />
+            </FormGroup>
+
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.addUser.bind(this)}>Add User</Button>{' '}
+            <Button color="secondary" onClick={this.toggleNewUserModal.bind(this)}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
+
+        <Modal isOpen={this.state.editUserModal} toggle={this.toggleEditUserModal.bind(this)}>
+          <ModalHeader toggle={this.toggleEditUserModal.bind(this)}>Edit a new User</ModalHeader>
+          <ModalBody>
+            <FormGroup>
+              <Label for="role">role</Label>
+              <Input id="role" value={this.state.editUserData.role} onChange={(e) => {
+                let { editUserData } = this.state;
+
+                editUserData.role = e.target.value;
+
+                this.setState({ editUserData });
+              }} />
+            </FormGroup>
+            <FormGroup>
+              <Label for="name">name</Label>
+              <Input id="name" value={this.state.editUserData.name} onChange={(e) => {
+                let { editUserData } = this.state;
+
+                editUserData.name = e.target.value;
+
+                this.setState({ editUserData });
+              }} />
+            </FormGroup>
+
+            <FormGroup>
+              <Label for="email">email</Label>
+              <Input id="email" value={this.state.editUserData.email} onChange={(e) => {
+                let { editUserData } = this.state;
+
+                editUserData.email = e.target.value;
+
+                this.setState({ editUserData });
+              }} />
+            </FormGroup>
+
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.updateUser.bind(this)}>Update User</Button>{' '}
+            <Button color="secondary" onClick={this.toggleEditUserModal.bind(this)}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
+
+        <Table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>role</th>
+              <th>name</th>
+              <th>email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              this.state.users.map(user =>
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.role}</td>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <Button
+                      color="success"
+                      size="sm"
+                      className="mr-2"
+                      onClick={this.editUser.bind(this, user.id, user.role, user.name, user.email)}>
+                      Edit
+                    </Button>
+                    <Button
+                      color="danger"
+                      size="sm"
+                      onClick={this.deleteUser1.bind(this, user.id)}>
+                      Delete
+                    </Button>
+                  </td>
                 </tr>
-                {this.props.users.map(user => (
-                  <tr key={user.id}>
-                    <td>
-                      {user.id}
-                    </td>
-                    <td>{user.role}</td>
-                    <td href="/p/id" as={`/p/${user.id}`}>{user.name}</td>
-                    <td>
-                      <td>{user.name}</td>
-                    </td>
-                    <td>
-                      <td>{user.email}</td>
-                    </td>
-                    <td>
-                      <button type="button"
-                        onClick={() => {
-                          this.props.editRow(user)
-                        }}
-                        className="btn btn-primary"
-                      >
-                        Edit
-                      </button>&nbsp;
-                      <button
-                        onClick={this.deleteUSer.bind(this, user.id)}
-                        className="btn btn-danger"
-                      >
-                        Delete
-                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody></table>
-          </div>
-        </div>
-      </section>
-
-
-    )
+              )
+            }
+          </tbody>
+        </Table>
+      </div>
+    );
   }
 }
 
-Index.getInitialProps = async function () {
-
-  // const res = await fetch(`http://192.168.1.21:8000/api/users`);
-  // const data = await res.json();
-  // console.log(data);
-  const res = await axios.get(`http://192.168.1.21:8000/api/users`)
-  const data = res.data
-
-  return {
-    // shows: [],
-    users: data.users
-  }
-}
-
-export default Index
+export default App;
